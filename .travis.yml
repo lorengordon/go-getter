@@ -21,3 +21,25 @@ branches:
 matrix:
   allow_failures:
     - go: master
+
+before_deploy:
+  - SHA=$(git rev-parse --short HEAD)
+  - git config user.name plus3-releasebot
+  - git config user.email "35925578+plus3-releasebot@users.noreply.github.com"
+  - git tag -a sha-$SHA -m sha-$SHA
+  - export CGO_ENABLED=0
+  - GOOS=linux GOARCH=amd64 go build -o ./bin/go-getter-linux-amd64 ./cmd/go-getter
+  - GOOS=darwin GOARCH=amd64 go build -o ./bin/go-getter-darwin-amd64  ./cmd/go-getter
+  - GOOS=windows GOARCH=amd64 go build -o ./bin/go-getter-windows-amd64.exe ./cmd/go-getter
+
+deploy:
+  provider: releases
+  api_key:
+    secure: pvUH7QKAq1L/dHIGdCPLe+hj0oa1v03q8rmuAzYDkvZ7KBj5WsR9J3xAeRDsB4Hg1bfzo11kF17qOIYLfA6RQMwQU4ZlvgWCiDcCK5CqkMNo6EWyWqlgntORv173gC37gFK1AntE/qXq2emGg+c6ZU8c3auOSRYiQ+gXVZJbKjnwThQniygpSg9X394vxJ8RmPzbs7avcPo1MPpIyUug+oEw08nfM1/EiOAAdKQBqQdCEV3U/FY5+PuQgj0IL1uLd57mNf8zfw3g2Qmfd9dEmwaAF9rL85bT/r2oWv2i8iPV5/QsJzrQAPyp0ntz+rhdeqL4Cfq/xsx7UK359OC1YOEv3tN5m/a09hKJbraBdwm0qVpFRAUZb2/X5ZWc9JvhRP5/Dml4tEO2F+Blmep/+MXdqKuSoQhnxj8RtLNzLFfo666Tz0oYDuLkhSEKSxy2RKlUkjw3yVBiEnvLuk1bIkcW0pXDIKF+UHGVLQPVJ+X1C4GOCt4/7ZL9wGnW98BCHHsrHEI6lvI4lBKywhzCgATMyugLcWe/JdE9LLijRFSFU+nVcbToWFSnlH77lZMEGNwwe0W94BGTt1gpKFQDSeCHjRHxHoZRUkbnUgZvY8ce10x1c7HJ6OTE7eDoFE+aPpagpDEAD3Hu1vt4yKH9sEoL/6wAnSW8MVLkpGCzQvw=
+  file: bin/*
+  file_glob: true
+  skip_cleanup: true
+  on:
+    repo: plus3it/go-getter
+    branch: master
+    condition: '"$TRAVIS_GO_VERSION" == "1.9"*'
